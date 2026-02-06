@@ -235,7 +235,8 @@ def main():
     # Feedback Box in Sidebar (Before Upload)
     with st.sidebar.expander("📬 Feedback & Suggestions"):
         st.markdown("**Help us improve!**")
-        feedback = st.text_area("What features would you like to see?", height=100)
+        st.caption("Tell us what **features**, **analytics indicators**, or improvements you'd like to see.")
+        feedback = st.text_area("Your suggestions:", height=100)
         if st.button("Submit Feedback"):
             if feedback:
                 # In a real app, save this to a database/sheet
