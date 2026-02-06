@@ -11,9 +11,10 @@ from datetime import datetime
 import numpy as np
 
 # Page config
+# Page config
 st.set_page_config(
-    page_title="Sales Analytics Dashboard",
-    page_icon="📊",
+    page_title="Sales Analytics",
+    page_icon=None,
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -193,53 +194,54 @@ def generate_insights(df, filtered_df):
     # Revenue insight
     total_revenue = filtered_df['Net Revenue'].sum() if 'Net Revenue' in filtered_df.columns else 0
     avg_order_value = total_revenue / len(filtered_df) if len(filtered_df) > 0 else 0
-    insights.append(f"💰 Average order value: **₹{avg_order_value:,.0f}**")
+    insights.append(f"Average Order Value: **₹{avg_order_value:,.0f}**")
     
     # Top platform
     if 'Platform' in filtered_df.columns:
         top_platform = filtered_df.groupby('Platform')['Net Revenue'].sum().idxmax()
         top_platform_revenue = filtered_df.groupby('Platform')['Net Revenue'].sum().max()
-        insights.append(f"🏆 Top platform: **{top_platform}** (₹{top_platform_revenue:,.0f})")
+        insights.append(f"Top Platform: **{top_platform}** (₹{top_platform_revenue:,.0f})")
     
     # Return rate
     if 'Sale (Amt.)' in filtered_df.columns and 'Sale Return (Amt.)' in filtered_df.columns:
         total_sales = filtered_df['Sale (Amt.)'].sum()
         total_returns = filtered_df['Sale Return (Amt.)'].sum()
         return_rate = (total_returns / total_sales * 100) if total_sales > 0 else 0
-        insights.append(f"📉 Return rate: **{return_rate:.1f}%**")
+        insights.append(f"Return Rate: **{return_rate:.1f}%**")
     
     # Top product
     if 'Product' in filtered_df.columns:
         top_product = filtered_df.groupby('Product')['Net Revenue'].sum().nlargest(1)
         if not top_product.empty:
-            insights.append(f"⭐ Best seller: **{top_product.index[0]}** (₹{top_product.values[0]:,.0f})")
+            insights.append(f"Best Seller: **{top_product.index[0]}** (₹{top_product.values[0]:,.0f})")
     
     return insights
 
 # Main app
 def main():
-    st.title("📊 Sales Analytics Dashboard")
+    st.title("Sales Analytics")
     st.markdown("**Real-time insights from your sales data**")
     
     # File upload in sidebar
-    st.sidebar.header("📁 Upload Data")
+    st.sidebar.header("Data Source")
     uploaded_file = st.sidebar.file_uploader(
-        "Upload Excel File (Required)",
+        "Upload Excel File",
         type=['xlsx', 'xls'],
         help="Upload your sales data Excel file - 'Final Sale Data' sheet will be processed"
     )
     
     if uploaded_file:
-        st.sidebar.success(f"✅ File loaded: {uploaded_file.name}")
-        st.sidebar.info(f"📊 Processing data...")
+        st.sidebar.success(f"File loaded: {uploaded_file.name}")
+        st.sidebar.info(f"Processing data...")
     else:
-        st.sidebar.warning("⚠️ Please upload an Excel file to begin")
+        st.sidebar.warning("Please upload an Excel file to begin")
     
     # Load data
     df = load_data(uploaded_file)
     
     if df is None:
-        st.info("👆 **Please upload your Excel file using the sidebar to view analytics**")
+    if df is None:
+        st.info("Please upload your Excel file using the sidebar to view analytics")
         st.markdown("""
         ### Expected Excel Structure:
         - **Sheet Name**: Final Sale Data
@@ -254,7 +256,7 @@ def main():
         st.stop()
     
     # Sidebar filters with cascading logic
-    st.sidebar.header("🔍 Filters")
+    st.sidebar.header("Filters")
     
     # Create a working dataframe for filter calculations
     filter_df = df.copy()
@@ -409,7 +411,7 @@ def main():
         else:
             revenue_delta = None
             revenue_color = "off"
-        st.metric("💰 Net Revenue", f"₹{total_revenue:,.0f}", delta=revenue_delta, delta_color=revenue_color)
+        st.metric("Net Revenue", f"₹{total_revenue:,.0f}", delta=revenue_delta, delta_color=revenue_color)
     
     with col2:
         total_qty = filtered_df['Net Quantity'].sum() if 'Net Quantity' in filtered_df.columns else 0
@@ -420,7 +422,7 @@ def main():
         else:
             qty_delta = None
             qty_color = "off"
-        st.metric("📦 Net Quantity", f"{total_qty:,.0f}", delta=qty_delta, delta_color=qty_color)
+        st.metric("Net Quantity", f"{total_qty:,.0f}", delta=qty_delta, delta_color=qty_color)
     
     with col3:
         total_orders = len(filtered_df)
@@ -431,7 +433,7 @@ def main():
         else:
             orders_delta = None
             orders_color = "off"
-        st.metric("🛒 Total Orders", f"{total_orders:,}", delta=orders_delta, delta_color=orders_color)
+        st.metric("Total Orders", f"{total_orders:,}", delta=orders_delta, delta_color=orders_color)
     
     with col4:
         avg_value = total_revenue / total_orders if total_orders > 0 else 0
@@ -442,12 +444,12 @@ def main():
         else:
             avg_delta = None
             avg_color = "off"
-        st.metric("📊 Avg Order Value", f"₹{avg_value:,.0f}", delta=avg_delta, delta_color=avg_color)
+        st.metric("Avg Order Value", f"₹{avg_value:,.0f}", delta=avg_delta, delta_color=avg_color)
     
     st.markdown("---")
     
     # Smart Insights
-    st.subheader("🧠 Smart Insights")
+    st.subheader("Key Insights")
     insights = generate_insights(df, filtered_df)
     for insight in insights:
         st.markdown(f'<div class="insight-box">{insight}</div>', unsafe_allow_html=True)
@@ -458,7 +460,7 @@ def main():
     col1, col2 = st.columns(2)
     
     with col1:
-        st.subheader("📈 Revenue by Platform")
+        st.subheader("Revenue by Platform")
         if 'Platform' in filtered_df.columns:
             platform_data = filtered_df.groupby('Platform')['Net Revenue'].sum().reset_index()
             platform_data = platform_data.sort_values('Net Revenue', ascending=False)
@@ -468,7 +470,7 @@ def main():
             st.plotly_chart(fig, width='stretch')
     
     with col2:
-        st.subheader("🥧 Revenue by Category")
+        st.subheader("Revenue by Category")
         if 'Category' in filtered_df.columns:
             category_data = filtered_df.groupby('Category')['Net Revenue'].sum().reset_index()
             fig = px.pie(category_data, names='Category', values='Net Revenue',
@@ -478,16 +480,16 @@ def main():
     
     # Time series
     if date_col:
-        st.subheader("📅 Revenue Trend Over Time")
+        st.subheader("Revenue Trend Over Time")
         time_data = filtered_df.groupby(filtered_df[date_col].dt.date)['Net Revenue'].sum().reset_index()
         time_data.columns = ['Date', 'Revenue']
         fig = px.line(time_data, x='Date', y='Revenue', markers=True)
-        fig.update_traces(line_color='#0079eb', line_width=3)
+        fig.update_traces(line_color='#0052cc', line_width=3)
         fig.update_layout(height=400)
         st.plotly_chart(fig, width='stretch')
     
     # Top products
-    st.subheader("⭐ Top 10 Products by Revenue")
+    st.subheader("Top 10 Products by Revenue")
     if 'Product' in filtered_df.columns:
         top_products = filtered_df.groupby('Product')['Net Revenue'].sum().nlargest(10).reset_index()
         fig = px.bar(top_products, x='Net Revenue', y='Product', orientation='h',
@@ -496,7 +498,7 @@ def main():
         st.plotly_chart(fig, width='stretch')
     
     # Data table
-    with st.expander("📋 View Raw Data"):
+    with st.expander("View Raw Data"):
         st.dataframe(filtered_df, width='stretch', height=400)
         st.caption(f"Showing {len(filtered_df):,} rows (filtered from {len(df):,} total rows)")
     
