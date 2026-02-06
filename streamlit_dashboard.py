@@ -240,7 +240,6 @@ def main():
     df = load_data(uploaded_file)
     
     if df is None:
-    if df is None:
         st.info("Please upload your Excel file using the sidebar to view analytics")
         st.markdown("""
         ### Expected Excel Structure:
