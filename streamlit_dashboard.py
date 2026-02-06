@@ -13,7 +13,7 @@ import numpy as np
 # Page config
 # Page config
 st.set_page_config(
-    page_title="Sales Analytics",
+    page_title="Analytics Dashboard",
     page_icon=None,
     layout="wide",
     initial_sidebar_state="expanded"
