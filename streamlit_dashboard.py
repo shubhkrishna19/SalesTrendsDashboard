@@ -521,5 +521,21 @@ def main():
             height=500
         )
 
+    # Raw Data Viewer
+    st.markdown("---")
+    with st.expander("📋 View Raw Data (Filtered)"):
+        st.caption(f"Showing {len(filtered_df):,} rows (filtered from {len(df):,} total rows)")
+        st.dataframe(filtered_df, use_container_width=True, height=400)
+    
+    # Footer
+    st.markdown("---")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown(f"**Total Rows Loaded:** {len(df):,}")
+    with col2:
+        st.markdown(f"**Filtered Rows:** {len(filtered_df):,}")
+    with col3:
+        st.markdown(f"**Last Updated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
 if __name__ == "__main__":
     main()
