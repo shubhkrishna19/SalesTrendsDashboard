@@ -260,13 +260,13 @@ def main():
         st.sidebar.warning("Please upload an Excel file to begin")
         st.info("👈 **Upload your Excel file in the sidebar to get started.**")
         st.markdown("""
-        #### Welcome to the Enterprise Analytics Suite
-        This dashboard provides deep insights into your sales ecosystem.
+        #### Sales Dashboard
+        Upload your Excel file to view insights.
         
-        **Available Modules (Sidebar):**
-        *   **📈 Trends & Performance**: Time-series analysis and forecasting.
-        *   **🏢 Platform Intelligence**: Distribution and channel analysis.
-        *   **📦 Product Matrix**: SKU-level performance and category heatmaps.
+        **Available Modules:**
+        *   **Overview**: High-level sales performance.
+        *   **Platform Analysis**: Channel and distribution metrics.
+        *   **Product Analysis**: SKU-level performance.
         """)
         st.stop()
     
