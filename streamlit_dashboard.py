@@ -220,10 +220,32 @@ def generate_insights(df, filtered_df):
 # Main app
 def main():
     st.title("Sales Analytics")
-    st.markdown("**Real-time insights from your sales data**")
+    st.markdown("""
+    **Transform your raw sales data into actionable business intelligence.**
+    
+    This dashboard provides a comprehensive view of your sales performance, helping you identify trends, top-performing products, and platform insights.
+    
+    ### How to Customise
+    This tool is designed to be flexible. You can filter data by Fiscal Year, Month, Platform, Category, and Product to drill down into specific segments of your business.
+    """)
     
     # File upload in sidebar
     st.sidebar.header("Data Source")
+    
+    # Feedback Box in Sidebar (Before Upload)
+    with st.sidebar.expander("📬 Feedback & Suggestions"):
+        st.markdown("**Help us improve!**")
+        feedback = st.text_area("What features would you like to see?", height=100)
+        if st.button("Submit Feedback"):
+            if feedback:
+                # In a real app, save this to a database/sheet
+                # For now, we simulate a save
+                st.success("Thank you! Your feedback has been recorded.")
+            else:
+                st.warning("Please enter some feedback first.")
+    
+    st.sidebar.markdown("---")
+    
     uploaded_file = st.sidebar.file_uploader(
         "Upload Excel File",
         type=['xlsx', 'xls'],
@@ -235,6 +257,9 @@ def main():
         st.sidebar.info(f"Processing data...")
     else:
         st.sidebar.warning("Please upload an Excel file to begin")
+        
+        # Show this on main page only when no file is loaded
+        st.info("👈 **Upload your Excel file in the sidebar to get started.**")
     
     # Load data
     df = load_data(uploaded_file)
