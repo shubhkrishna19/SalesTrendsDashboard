@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+.DS_Store
+*.tmp
+.vscode/
+.env
+
+# Heavy/Private Excel files
+*.xlsx
+*.xls
+dashboard/
+analyze_*.py
+save_analysis.py
+*.json
+data_analysis_report.txt
