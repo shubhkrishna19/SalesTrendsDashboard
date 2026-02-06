@@ -6,7 +6,7 @@ textColor = "#ffffff"
 font = "sans serif"
 
 [server]
-enableCORS = true
+enableCORS = false
 enableXsrfProtection = false
 enableWebsocketCompression = true
 headless = true
