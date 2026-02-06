@@ -237,10 +237,36 @@ def main():
     with st.sidebar.expander("📬 Feedback & Suggestions"):
         st.markdown("**Help us improve!**")
         st.caption("Tell us what **features**, **analytics indicators**, or improvements you'd like to see.")
-        feedback = st.text_area("Your suggestions:", height=100)
+        feedback_text = st.text_area("Your suggestions:", height=100)
+        
         if st.button("Submit Feedback"):
-            if feedback:
-                st.success("Thank you! Your feedback has been recorded.")
+            if feedback_text:
+                try:
+                    # Attempt to save to GitHub if configured
+                    if "GITHUB_TOKEN" in st.secrets:
+                        from github import Github
+                        g = Github(st.secrets["GITHUB_TOKEN"])
+                        # Use repo name from secrets or default to current
+                        repo_name = st.secrets.get("GITHUB_REPO", "shubhkrishna19/salestrendsdashboard") 
+                        repo = g.get_repo(repo_name)
+                        
+                        file_path = "feedback.csv"
+                        try:
+                            # Get existing file
+                            file = repo.get_contents(file_path)
+                            current_content = file.decoded_content.decode()
+                            new_content = current_content + f"\n{datetime.now()},{feedback_text.replace(',', ';')}" # Escape commas
+                            repo.update_file(file_path, "Add new feedback", new_content, file.sha)
+                        except:
+                            # Create new file
+                            new_content = f"Date,Feedback\n{datetime.now()},{feedback_text.replace(',', ';')}"
+                            repo.create_file(file_path, "Initial feedback log", new_content)
+                        
+                        st.success("Feedback saved to Repository!")
+                    else:
+                        st.info("Feedback received! (To save to Repo, add GITHUB_TOKEN to secrets)")
+                except Exception as e:
+                    st.error(f"Could not save to repo: {str(e)}")
             else:
                 st.warning("Please enter some feedback first.")
     
