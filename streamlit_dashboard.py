@@ -114,6 +114,14 @@ st.markdown("""
         background-color: #1976D2;
     }
     
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap');
+
+    /* Global Font - Solid & Professional */
+    html, body, [class*="css"] {
+        font-family: 'Roboto', 'Segoe UI', 'Helvetica Neue', sans-serif;
+        color: #091e42;
+    }
+    
     /* Dataframe */
     .dataframe {
         font-size: 13px;
