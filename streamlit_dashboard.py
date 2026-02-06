@@ -516,7 +516,11 @@ def main():
     # Detailed Table
     with st.expander("🔎 View Detailed Product Performance"):
         st.dataframe(
-            prod_stats.style.background_gradient(subset=['Net Revenue'], cmap='Blues'),
+            prod_stats.style.background_gradient(subset=['Net Revenue'], cmap='Blues')
+            .format({
+                'Net Revenue': '₹{:,.0f}',
+                'Net Quantity': '{:,.0f}'
+            }),
             use_container_width=True,
             height=500
         )
