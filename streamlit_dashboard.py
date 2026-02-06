@@ -219,12 +219,8 @@ def generate_insights(df, filtered_df):
 
 # Main app
 def main():
-    st.title("Executive Overview")
+    st.title("Analytics Dashboard")
     st.markdown("### Sales Performance Snapshot")
-    
-    # Initialize session state for data if not present
-    if 'data' not in st.session_state:
-        st.session_state.data = None
     
     # ------------------ SIDEBAR ------------------
     st.sidebar.header("Data Source")
@@ -250,12 +246,6 @@ def main():
     
     if uploaded_file:
         st.sidebar.success(f"File loaded: {uploaded_file.name}")
-        df = load_data(uploaded_file)
-        if df is not None:
-             st.session_state.data = df
-    elif st.session_state.data is not None:
-        st.sidebar.info("Using previously loaded data")
-        df = st.session_state.data
     else:
         st.sidebar.warning("Please upload an Excel file to begin")
         st.info("👈 **Upload your Excel file in the sidebar to get started.**")
@@ -270,21 +260,76 @@ def main():
         """)
         st.stop()
     
-    # ------------------ MAIN DATA LOGIC ------------------
+    # Load data
+    df = load_data(uploaded_file)
     
-    # Global Filters (Apply to Overview only, pages can have their own)
-    st.sidebar.header("Global Filters")
+    if df is None:
+        st.info("Please upload your Excel file using the sidebar to view analytics")
+        st.stop()
+        
+    # ------------------ GLOBAL FILTERS (CASCADING) ------------------
+    st.sidebar.header("Filters")
     
     # Create valid filter df
     filter_df = df.copy()
     
-    # Date Range Slider (More professional than simple date inputs)
+    # Fiscal Year filter
+    if 'Fiscal Year' in df.columns:
+        fiscal_years = ['All'] + sorted(df['Fiscal Year'].dropna().unique().tolist(), reverse=True)
+        selected_fy = st.sidebar.selectbox("Fiscal Year", fiscal_years, index=0)
+        if selected_fy != 'All':
+            filter_df = filter_df[filter_df['Fiscal Year'] == selected_fy]
+
+    # Month filter
+    if 'Month' in df.columns:
+        available_months = ['All'] + sorted(filter_df['Month'].dropna().unique().tolist(), reverse=True)
+        selected_month = st.sidebar.selectbox("Month", available_months, index=0)
+        if selected_month != 'All':
+            filter_df = filter_df[filter_df['Month'] == selected_month]
+
+    # Platform filter
+    if 'Platform' in filter_df.columns:
+        available_platforms = ['All'] + sorted(filter_df['Platform'].dropna().unique().tolist())
+        selected_platforms = st.sidebar.multiselect(
+            "Platform", 
+            available_platforms, 
+            default=['All'],
+            help="Select platforms - updates based on category/product selection"
+        )
+        if 'All' not in selected_platforms and selected_platforms:
+            filter_df = filter_df[filter_df['Platform'].isin(selected_platforms)]
+
+    # Category filter
+    if 'Category' in filter_df.columns:
+        available_categories = ['All'] + sorted(filter_df['Category'].dropna().unique().tolist())
+        selected_categories = st.sidebar.multiselect(
+            "Category", 
+            available_categories, 
+            default=['All'],
+            help="Select categories - updates based on platform/product selection"
+        )
+        if 'All' not in selected_categories and selected_categories:
+            filter_df = filter_df[filter_df['Category'].isin(selected_categories)]
+
+    # Product filter (Optional)
+    if st.sidebar.checkbox("Filter by Product/SKU"):
+        if 'Product' in filter_df.columns:
+            available_products = sorted(filter_df['Product'].dropna().unique().tolist())
+            selected_product = st.sidebar.selectbox(
+                "Product", 
+                ['All'] + available_products,
+                help="Select product - updates based on platform/category selection"
+            )
+            if selected_product != 'All':
+                filter_df = filter_df[filter_df['Product'] == selected_product]
+
+    # Date Range Slider
     if 'Final Order date' in df.columns:
         min_date = df['Final Order date'].min()
         max_date = df['Final Order date'].max()
-        # Ensure dates are valid
         if pd.notnull(min_date) and pd.notnull(max_date):
-            date_range = st.sidebar.slider(
+            cols = st.sidebar.columns(1)
+            date_range = cols[0].slider(
                 "Date Period",
                 min_value=min_date.date(),
                 max_value=max_date.date(),
@@ -296,8 +341,8 @@ def main():
             ]
             
     filtered_df = filter_df
-    
-    # ------------------ KPI SECTION (BIG SPACES) ------------------
+
+    # ------------------ KPI SECTION ------------------
     st.markdown("---")
     
     col1, col2, col3, col4 = st.columns(4)
@@ -307,9 +352,6 @@ def main():
     qty = filtered_df['Net Quantity'].sum()
     orders = len(filtered_df)
     aov = revenue / orders if orders > 0 else 0
-    
-    # Calculate Comparison (Simple Month-over-Month logic for demo, or vs total)
-    # For professional look, we just show cleanly
     
     with col1:
         st.metric("Total Revenue", f"₹{revenue:,.0f}")
@@ -322,11 +364,10 @@ def main():
         
     st.markdown("---")
 
-    # ------------------ HIGH LEVEL TREND (One Big Chart) ------------------
-    st.subheader("Revenue Velocity")
+    # ------------------ REVENUE VELOCITY ------------------
+    st.subheader("Revenue Trends")
     
     if 'Final Order date' in filtered_df.columns:
-        # Group by Month for smoothness
         time_data = filtered_df.groupby(pd.Grouper(key='Final Order date', freq='M'))['Net Revenue'].sum().reset_index()
         
         fig = px.area(
@@ -338,20 +379,147 @@ def main():
         )
         fig.update_traces(line_color='#0052cc', fillcolor='rgba(0, 82, 204, 0.1)')
         fig.update_layout(
-            height=500,
+            height=400,
             xaxis_title="",
             yaxis_title="Revenue (₹)",
             hovermode="x unified",
             margin=dict(l=0, r=0, t=0, b=0)
         )
         st.plotly_chart(fig, use_container_width=True)
+
+    # ------------------ SECTION: PLATFORM INTELLIGENCE ------------------
+    st.markdown("## 🏢 Platform Intelligence")
+    st.markdown("---")
+
+    col1, col2 = st.columns([2, 1])
     
-    # ------------------ BOTTOM GUIDANCE ------------------
-    col1, col2 = st.columns(2)
     with col1:
-        st.info("💡 **Deep Dive Available**: Navigate to the **Platform Analysis** page for channel breakdown.")
+        st.markdown("### Performance Matrix")
+        st.caption("Revenue vs. Volume vs. Average Order Value")
+        
+        platform_metrics = filtered_df.groupby('Platform').agg({
+            'Net Revenue': 'sum',
+            'Net Quantity': 'sum',
+            'Final Order date': 'count'
+        }).reset_index()
+        platform_metrics['AOV'] = platform_metrics['Net Revenue'] / platform_metrics['Final Order date']
+        
+        fig_bubble = px.scatter(
+            platform_metrics,
+            x="Net Quantity",
+            y="Net Revenue",
+            size="AOV",
+            color="Platform",
+            hover_name="Platform",
+            text="Platform",
+            size_max=60,
+            template="plotly_white"
+        )
+        fig_bubble.update_traces(textposition='top center')
+        fig_bubble.update_layout(height=500, xaxis_title="Sales Volume (Qty)", yaxis_title="Total Revenue")
+        st.plotly_chart(fig_bubble, use_container_width=True)
+
     with col2:
-        st.info("💡 **Product Matrix**: Go to **Product Deep Dive** to see SKU performance.")
+        st.markdown("### Return Rates")
+        return_data = filtered_df.groupby('Platform').agg({
+            'Sale (Amt.)': 'sum',
+            'Sale Return (Amt.)': 'sum'
+        }).reset_index()
+        
+        return_data['Return Rate (%)'] = (return_data['Sale Return (Amt.)'] / return_data['Sale (Amt.)']) * 100
+        return_data = return_data.sort_values('Return Rate (%)', ascending=True)
+        
+        fig_bar = px.bar(
+            return_data,
+            x='Return Rate (%)',
+            y='Platform',
+            orientation='h',
+            color='Return Rate (%)',
+            color_continuous_scale='RdYlGn_r',
+            text_auto='.1f',
+            template="plotly_white"
+        )
+        fig_bar.update_layout(height=500)
+        st.plotly_chart(fig_bar, use_container_width=True)
+
+    st.markdown("### Channel Distribution")
+    tree_data = filtered_df.groupby(['Platform', 'Category'])['Net Revenue'].sum().reset_index()
+    tree_data = tree_data[tree_data['Net Revenue'] > 0]
+    
+    fig_tree = px.treemap(
+        tree_data,
+        path=[px.Constant("All Platforms"), 'Platform', 'Category'],
+        values='Net Revenue',
+        color='Net Revenue',
+        color_continuous_scale='Blues',
+        template="plotly_white"
+    )
+    fig_tree.update_layout(margin=dict(t=0, l=0, r=0, b=0), height=400)
+    st.plotly_chart(fig_tree, use_container_width=True)
+
+    # ------------------ SECTION: PRODUCT MATRIX ------------------
+    st.markdown("## 📦 Product Matrix")
+    st.markdown("---")
+
+    # Star Products
+    prod_stats = filtered_df.groupby('Product').agg({
+        'Net Revenue': 'sum',
+        'Net Quantity': 'sum'
+    }).sort_values('Net Revenue', ascending=False)
+    
+    if not prod_stats.empty:
+        col1, col2, col3 = st.columns(3)
+        top_rev = prod_stats.index[0]
+        top_rev_val = prod_stats.iloc[0]['Net Revenue']
+        top_qty_prod = prod_stats.sort_values('Net Quantity', ascending=False).index[0]
+        top_qty_val = prod_stats.sort_values('Net Quantity', ascending=False).iloc[0]['Net Quantity']
+        
+        with col1:
+            st.metric("Highest Revenue SKU", top_rev, f"₹{top_rev_val:,.0f}")
+        with col2:
+            st.metric("Highest Volume SKU", top_qty_prod, f"{top_qty_val:,.0f} units")
+        with col3:
+            st.metric("Active SKUs", len(prod_stats))
+
+    # Pareto Chart
+    st.markdown("### Revenue Concentration (Pareto)")
+    pareto_data = prod_stats.copy()
+    pareto_data['Cumulative Revenue'] = pareto_data['Net Revenue'].cumsum()
+    pareto_data['Cumulative %'] = 100 * pareto_data['Cumulative Revenue'] / pareto_data['Net Revenue'].sum()
+    pareto_data = pareto_data.reset_index().head(50)
+    
+    fig_pareto = go.Figure()
+    fig_pareto.add_trace(go.Bar(
+        x=pareto_data['Product'],
+        y=pareto_data['Net Revenue'],
+        name='Revenue',
+        marker_color='#0052cc'
+    ))
+    fig_pareto.add_trace(go.Scatter(
+        x=pareto_data['Product'],
+        y=pareto_data['Cumulative %'],
+        name='Cumulative %',
+        yaxis='y2',
+        mode='lines+markers',
+        marker_color='#ffab00'
+    ))
+    fig_pareto.update_layout(
+        xaxis_title="Product (Top 50)",
+        yaxis_title="Revenue",
+        yaxis2=dict(title="Cumulative %", overlaying='y', side='right', range=[0, 110]),
+        showlegend=False,
+        height=500,
+        template="plotly_white"
+    )
+    st.plotly_chart(fig_pareto, use_container_width=True)
+
+    # Detailed Table
+    with st.expander("🔎 View Detailed Product Performance"):
+        st.dataframe(
+            prod_stats.style.background_gradient(subset=['Net Revenue'], cmap='Blues'),
+            use_container_width=True,
+            height=500
+        )
 
 if __name__ == "__main__":
     main()

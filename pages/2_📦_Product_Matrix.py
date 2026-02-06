@@ -7,8 +7,54 @@ st.set_page_config(page_title="Product Analysis", page_icon="📦", layout="wide
 
 st.markdown("""
 <style>
-    .stApp { background-color: #f4f6f8; }
-    h1, h2, h3 { color: #172b4d !important; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    /* Global Font */
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
+        color: #172b4d;
+    }
+
+    /* Main background */
+    .stApp {
+        background-color: #f4f6f8;
+    }
+    
+    /* Metric cards */
+    .stMetric {
+        background-color: #ffffff;
+        padding: 24px;
+        border-radius: 8px;
+        border: 1px solid #dfe1e6;
+        box-shadow: 0 1px 2px rgba(9, 30, 66, 0.08);
+    }
+    
+    /* Metric labels */
+    .stMetric label {
+        color: #5e6c84 !important;
+        font-weight: 500 !important;
+        font-size: 13px !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    /* Metric values */
+    .stMetric [data-testid="stMetricValue"] {
+        color: #172b4d !important;
+        font-size: 32px !important;
+        font-weight: 700 !important;
+        letter-spacing: -0.5px;
+    }
+    
+    /* Headers */
+    h1 {
+        color: #172b4d !important;
+        font-weight: 700 !important;
+    }
+    
+    h2, h3 {
+        color: #172b4d !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -92,7 +138,8 @@ fig_pareto.update_layout(
     yaxis_title="Revenue",
     yaxis2=dict(title="Cumulative %", overlaying='y', side='right', range=[0, 110]),
     showlegend=False,
-    height=500
+    height=500,
+    template="plotly_white"
 )
 st.plotly_chart(fig_pareto, use_container_width=True)
 

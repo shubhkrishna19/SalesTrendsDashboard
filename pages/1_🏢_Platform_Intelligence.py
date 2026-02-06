@@ -7,9 +7,38 @@ st.set_page_config(page_title="Platform Intelligence", page_icon="🏢", layout=
 
 st.markdown("""
 <style>
-    /* Reuse sleek CSS from main page */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    /* Global Font */
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
+        color: #172b4d;
+    }
+
     .stApp { background-color: #f4f6f8; }
-    .stMetric { background-color: white; border: 1px solid #dfe1e6; }
+    
+    /* Metric cards */
+    .stMetric {
+        background-color: #ffffff;
+        padding: 24px;
+        border-radius: 8px;
+        border: 1px solid #dfe1e6;
+        box-shadow: 0 1px 2px rgba(9, 30, 66, 0.08);
+    }
+    
+    .stMetric label {
+        color: #5e6c84 !important;
+        font-weight: 500 !important;
+        font-size: 13px !important;
+        text-transform: uppercase;
+    }
+    
+    .stMetric [data-testid="stMetricValue"] {
+        color: #172b4d !important;
+        font-size: 32px !important;
+        font-weight: 700 !important;
+    }
+    
     h1, h2, h3 { color: #172b4d !important; }
 </style>
 """, unsafe_allow_html=True)
