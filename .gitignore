@@ -13,3 +13,4 @@ analyze_*.py
 save_analysis.py
 *.json
 data_analysis_report.txt
+.streamlit/secrets.toml
